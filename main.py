@@ -44,7 +44,7 @@ def main():
                 reqs.get("https://api.vk.com/method/messages.send", params={"v": 5.131, "peer_id": 2000000000 + settings.get("chatid"), "access_token": settings.get("token"), "random_id": 0, "message": result})
                 if settings.get("doPrint"):
                     print(result)
-        except:  # Оно постоянно кидает мне какие-то связанные с интернетом ошибки, поэтому ПРОСТО КИНЕМ ИХ В ИГНОР)) наверное весь код плагинов нексленжа вышлядит так же))
+        except:  # Оно постоянно кидает мне какие-то связанные с интернетом ошибки, поэтому ПРОСТО КИНЕМ ИХ В ИГНОР))
             continue
 
 if __name__ == "__main__":
