@@ -12,8 +12,8 @@ settings = {    # Настройки "бота"
 session = reqs.Session()
 
 def createSession():  # Создаёт сессию на сайте, возвращает её ID
-    session.get("https://nexland.ru/acc/login.php", params={"server": settings.get("server"), "name": settings.get("nickname"), "pass": settings.get("password")})
-    reply = session.get("https://nexland.ru/acc/index.php").text
+    session.get("https://nexland.fun/acc/login.php", params={"server": settings.get("server"), "name": settings.get("nickname"), "pass": settings.get("password")})
+    reply = session.get("https://nexland.fun/acc/index.php").text
     x = reply.find("sessionId = '")
     sessionid = reply[x:x+60].split("'")[1]
     print(f"Session ID: {sessionid}\n")
@@ -21,9 +21,9 @@ def createSession():  # Создаёт сессию на сайте, возвр�
 
 def listen(sessionid):  # Слушает сайт, возвращает последнее сообщение (разделяется через <br>)
     try:
-        reply = session.get("https://nexland.ru/acc/api/api.php", params={"method": "get", "session": sessionid, "server": settings.get("server")}).text
+        reply = session.get("https://nexland.fun/acc/api/api.php", params={"method": "get", "session": sessionid, "server": settings.get("server")}).text
     except:
-        reply = session.get("https://nexland.ru/acc/api/api.php", params={"method": "get", "session": sessionid, "server": settings.get("server")}).text
+        reply = session.get("https://nexland.fun/acc/api/api.php", params={"method": "get", "session": sessionid, "server": settings.get("server")}).text
     return reply.split("<br>")[-1]
 
 def main():
