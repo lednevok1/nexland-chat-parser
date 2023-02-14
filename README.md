@@ -1,9 +1,8 @@
-# nexland-chat-viewer
-Nexland is popular MCPE (MCBE) (v1.1, v1.19) server.
+Ээ короче бот для автоматической отправки глобального чата
+с NexLand (любой сервер, на выбор) в ваш супер-пупер вк чат.
 
-This bot lets you see each nexland servers' global chat (for each server) using nexland.fun(-.ru).
-To use it, you'll need to put your account info (you can create a new one), vk api token, choose server and chatid.
+Ну аккаунт на некме нужен, токен вк и сам чатайди.
 
-The bot supports only VK chats and terminal to give you information about chat.
+Ну в файле посмотрите чё вы как дети (хотя на нексе в основном дети).
 
-кто вообще это читать будет или кто из коммьюнити нексленда поймёт что это и зачем???
+А ещё там баг короче есть что если в чате появится >1 сообщение за короткий промежуток времени то вы не увидите все кроме последнего ну это уже не мои проблемы сами там пофиксите сделаете форк а я быстро спизжу муахахаха
