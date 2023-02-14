@@ -22,7 +22,7 @@ def createSession():  # Создаёт сессию на сайте, возвр�
 def listen(sessionid):  # Слушает сайт, возвращает последнее сообщение (разделяется через <br>)
     try:
         reply = session.get("https://nexland.fun/acc/api/api.php", params={"method": "get", "session": sessionid, "server": settings.get("server")}).text
-    except:
+    except:  # ну тут тоже какие-то маги наколдовали и лично у меня ошибки если у вас их не будет то уберёте
         reply = session.get("https://nexland.fun/acc/api/api.php", params={"method": "get", "session": sessionid, "server": settings.get("server")}).text
     return reply.split("<br>")[-1]
 
