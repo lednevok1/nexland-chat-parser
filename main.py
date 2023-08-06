@@ -1,51 +1,83 @@
 import requests as reqs
 from re import sub
+from time import time, sleep
 
-settings = {    # Настройки "бота"
-                "nickname": "",
-                "password": "",
-                "server": "",
-                "chatid": int(""),  # Только чаты
-                "token": "",
-                "doPrint": bool(1)  # 1 или 0
+code = int(time() * 1000)
+options = {
+    "name": "456", "password": "123", 
+    "server": "",  # 1, 2, 3, 4, 5, 6, 7, 8, sw, sw2
+    
+    "chatid": int("7"), 
+    "token": "8",
+    
+    "print": True,  # True/False (с заглав. буквы)
+    "debug": False
 }
-session = reqs.Session()
+headers = {'Accept': '*/*', 'Accept-Encoding': 'gzip, deflate, br', 'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7', 'Connection': 'keep-alive', 'Cookie': 'PHPSESSID=094kf4in2mrejt2r1hgaq3epcn', 'Host': 'nexland.fun', 'Referer': 'https://nexland.fun/acc/index.php', 'sec-ch-ua': '"Not:A-Brand";v="99", "Chromium";v="112"', 'sec-ch-ua-mobile': '?1', 'sec-ch-ua-platform': '"Android"', 'Sec-Fetch-Dest': 'empty', 'Sec-Fetch-Mode': 'cors', 'Sec-Fetch-Site': 'same-origin', 'User-Agent': 'Mozilla/5.0 (Linux; Android 11; Pixel 3a) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36', 'X-Requested-With': 'XMLHttpRequest'}
+session = reqs.Session();
 
-def createSession():  # Создаёт сессию на сайте, возвращает её ID
-    session.get("https://nexland.fun/acc/login.php", params={"server": settings.get("server"), "name": settings.get("nickname"), "pass": settings.get("password")})
-    reply = session.get("https://nexland.fun/acc/index.php").text
-    x = reply.find("sessionId = '")
-    sessionid = reply[x:x+60].split("'")[1]
-    print(f"Session ID: {sessionid}\n")
+def newSession():
+    if options.get("debug"):    print("called function: newSession")
+    session.get("https://nexland.fun/acc/login.php", headers=headers, params={"server": options.get("server"), "name": options.get("name"), "pass": options.get("password"), "_": str(int(time()*1000))})
+    response = session.get("https://nexland.fun/acc/index.php", headers=headers).text
+    index = response.find("const sessionId = '")
+    sessionid = response[index:index+60].split("'", maxsplit=2)[1]
+    
+    print("new sessionid:", sessionid)
     return sessionid
 
-def listen(sessionid):  # Слушает сайт, возвращает последнее сообщение (разделяется через <br>)
+def parse(sessionid):
+    if options.get("debug"):    print("called function: parse with sessionid:", sessionid)
+    global code
     try:
-        reply = session.get("https://nexland.fun/acc/api/api.php", params={"method": "get", "session": sessionid, "server": settings.get("server")}).text
-    except:  # ну тут тоже какие-то маги наколдовали и лично у меня ошибки если у вас их не будет то уберёте
-        reply = session.get("https://nexland.fun/acc/api/api.php", params={"method": "get", "session": sessionid, "server": settings.get("server")}).text
-    return reply.split("<br>")[-1]
+        response = session.get("https://nexland.fun/acc/api/api.php", headers=headers, params={"method": "get", "session": sessionid, "server": str(options.get("server")), "_": code}).text
+    except:
+        response = session.get("https://nexland.fun/acc/api/api.php", headers=headers, params={"method": "get", "session": sessionid, "server": str(options.get("server")), "_": int(time()*1000)}).text
+    code = code + 1
+    if options.get("debug"):    print("newSession returned:", response.split("<br>")[-1])
+    return response.split("<br>")[-1]
+
+def beautify(text):
+    if options.get("debug"):    print("called function: beautify")
+    result = sub("<[^<]+?>", "", text)
+    result = result.replace("@", "@;").replace("*", "*;")
+    if options.get("debug"):    print("beautify returned:", result)
+    return result
 
 def main():
-    lastmsg = None
-    sessionid = createSession()
+    sessionid = newSession()
+    lastmessage = ""
+    sleep(4)
     while True:
-        try:
-            answer = listen(sessionid)
-            if "not f" in answer:
-                print("Session expired, generating another one...")
-                sessionid = createSession()
-                continue
-            elif lastmsg == answer:
-                continue
-            lastmsg = answer
-            if lastmsg.startswith("<span style=color:#5FF>[G]"):
-                result = sub("<[^<]+?>", "", lastmsg)
-                reqs.get("https://api.vk.com/method/messages.send", params={"v": 5.131, "peer_id": 2000000000 + settings.get("chatid"), "access_token": settings.get("token"), "random_id": 0, "message": result})
-                if settings.get("doPrint"):
-                    print(result)
-        except:  # Оно постоянно кидает мне какие-то связанные с интернетом ошибки, поэтому ПРОСТО КИНЕМ ИХ В ИГНОР))
+        print("iter started")
+        start = int(time() * 1000)
+        try:    message = beautify(parse(sessionid))
+        except Exception as exc:
+            print(f"ERROR [{exc}], RETRYING")
+            message = beautify(parse(sessionid))
+        
+        if message == lastmessage or message == "chat.type.text" or message == "Session not found":
+            print("ту би кантинуед")
+            if message == "Session not found":
+                sessionid = newSession()
+            end = int(time()*1000)
+            sleeptime = (1000 - (end - start)) / 1000
+            if sleeptime < 0:    sleeptime = 0
+            sleep(sleeptime)
             continue
+        if message == "Доступ запрещен":
+            print("\"Доступ запрещен\" detected, termintating process..."); return 1
+        
+        lastmessage = message
+        if options.get("print"):    print(message)
+        try:    reqs.get(f"https://api.telegram.org/bot{options.get('token')}/sendMessage", params={"chat_id": options.get("chatid"), "text": message, "parse_mode": "html"})
+        except Exception as exc:
+            print(f"ERROR [{exc}], RETRYING")
+            reqs.get(f"https://api.telegram.org/bot{options.get('token')}/sendMessage", params={"chat_id": options.get("chatid"), "text": message, "parse_mode": "html"})
+        end = int(time()*1000)
+        sleeptime = (1000 - (end - start)) / 1000
+        if sleeptime < 0:    sleeptime = 0
+        print("sleeping", sleeptime)
+        sleep(sleeptime)
 
-if __name__ == "__main__":
-    main()
+main()
